@@ -1,6 +1,8 @@
-from flask import Flask, jsonify, request
-
-app = Flask(__name__)
+import pymysql
+from app import app
+from config import mysql
+from flask import jsonify
+from flask import flash, request
 
 movies = [
     {"id": 1, "title": "Spirited Away", "director": "Hayao Miyazaki", "release_year": 2001, "genre": "Adventure"},
@@ -9,6 +11,23 @@ movies = [
     {"id": 4, "title": "Arriety", "director": "Hiromasa Yonebayashi", "release_year": 2010, "genre": "Fantasy"},
     {"id": 5, "title": "Your Name", "director": "Makoto Shinkai", "release_year": 2016, "genre": "Romance"},
 ]
+
+@app.route('/student')
+def students():
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SELECT * FROM student")
+        studentRows = cursor.fetchall()
+        respone = jsonify(studentRows)
+        respone.status_code = 200
+        return respone
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close() 
+        conn.close() 
+
 
 @app.route('/movies', methods=['GET'])
 def get_movies():
