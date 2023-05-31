@@ -9,3 +9,15 @@ movies = [
     {"id": 4, "title": "Arriety", "director": "Hiromasa Yonebayashi", "release_year": 2010, "genre": "Fantasy"},
     {"id": 5, "title": "Your Name", "director": "Makoto Shinkai", "release_year": 2016, "genre": "Romance"},
 ]
+
+@app.route('/movies', methods=['GET'])
+def get_movies():
+    return jsonify(movies)
+
+@app.route('/movies/<int:id>', methods=['GET'])
+def get_movie(id):
+    movie = next((movie for movie in movies if movie["id"] == id), None)
+    if movie:
+        return jsonify(movie)
+    else:
+        return jsonify({"message": "Movie not found"}), 404
