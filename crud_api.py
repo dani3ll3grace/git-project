@@ -11,6 +11,34 @@ movies = [
     {"id": 4, "title": "Arriety", "director": "Hiromasa Yonebayashi", "release_year": 2010, "genre": "Fantasy"},
     {"id": 5, "title": "Your Name", "director": "Makoto Shinkai", "release_year": 2016, "genre": "Romance"},
 ]
+#####################3
+@app.route('/create', methods=['POST'])
+def create_emp():
+    try:        
+        _json = request.json
+        id = _json['id']
+        first_name = _json['first_name']
+        last_name = _json['last_name']
+        grade = _json['grade']
+        class_number = _json['class_number']
+        birthday = _json['birthday']
+        if id and first_name and last_name and grade and class_number and birthday and request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)		
+            sqlQuery = "INSERT INTO student (id, first_name, last_name, grade, class_number, birthday) VALUES(%s, %s, %s, %s, %s, %s)"
+            bindData = (id, first_name, last_name, grade, class_number, birthday)            
+            cursor.execute(sqlQuery, bindData)
+            conn.commit()
+            respone = jsonify('Student added successfully!')
+            respone.status_code = 200
+            return respone
+        else:
+            return jsonify['Error']
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close() 
+        conn.close()    
 
 @app.route('/student')
 def students():
