@@ -21,3 +21,27 @@ def get_movie(id):
         return jsonify(movie)
     else:
         return jsonify({"message": "Movie not found"}), 404
+    
+@app.route('/movies', methods=['POST'])
+def create_movie():
+    new_movie = {
+        "id": request.json["id"],
+        "title": request.json["title"],
+        "director": request.json["director"],
+        "release_year": request.json["release_year"],
+        "genre": request.json["genre"]
+    }
+    movies.append(new_movie)
+    return jsonify({"message": "Movie created successfully"})
+
+@app.route('/movies/<int:id>', methods=['DELETE'])
+def delete_movie(id):
+    movie = next((movie for movie in movies if movie["id"] == id), None)
+    if movie:
+        movies.remove(movie)
+        return jsonify({"message": "Movie deleted successfully"})
+    else:
+        return jsonify({"message": "Movie not found"}), 404
+
+if __name__ == '__main__':
+    app.run()
