@@ -33,3 +33,27 @@ def create_movie():
     }
     movies.append(new_movie)
     return jsonify({"message": "Movie created successfully"})
+
+@app.route('/movies/<int:id>', methods=['PUT'])
+def update_movie(id):
+    movie = next((movie for movie in movies if movie["id"] == id), None)
+    if movie:
+        movie["title"] = request.json.get("title", movie["title"])
+        movie["director"] = request.json.get("director", movie["director"])
+        movie["release_year"] = request.json.get("release_year", movie["release_year"])
+        movie["genre"] = request.json.get("genre", movie["genre"])
+        return jsonify({"message": "Movie updated successfully"})
+    else:
+        return jsonify({"message": "Movie not found"}), 404
+
+@app.route('/movies/<int:id>', methods=['DELETE'])
+def delete_movie(id):
+    movie = next((movie for movie in movies if movie["id"] == id), None)
+    if movie:
+        movies.remove(movie)
+        return jsonify({"message": "Movie deleted successfully"})
+    else:
+        return jsonify({"message": "Movie not found"}), 404
+
+if __name__ == '__main__':
+    app.run()
