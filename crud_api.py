@@ -33,15 +33,3 @@ def create_movie():
     }
     movies.append(new_movie)
     return jsonify({"message": "Movie created successfully"})
-
-@app.route('/movies/<int:id>', methods=['DELETE'])
-def delete_movie(id):
-    movie = next((movie for movie in movies if movie["id"] == id), None)
-    if movie:
-        movies.remove(movie)
-        return jsonify({"message": "Movie deleted successfully"})
-    else:
-        return jsonify({"message": "Movie not found"}), 404
-
-if __name__ == '__main__':
-    app.run()
