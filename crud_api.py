@@ -1,18 +1,43 @@
 import pymysql
+import pymysql.cursors
+from cryptography.fernet import Fernet
 from app import app
 from config import mysql
 from flask import jsonify
 from flask import flash, request
 
-movies = [
-    {"id": 1, "title": "Spirited Away", "director": "Hayao Miyazaki", "release_year": 2001, "genre": "Adventure"},
-    {"id": 2, "title": "A Silent Voice", "director": "Naoko Yamada", "release_year": 2016, "genre": "Drama"},
-    {"id": 3, "title": "The Girl Who Lept Through Time", "director": "Mamoru Hosoda", "release_year": 2006, "genre": "Sci-Fi"},
-    {"id": 4, "title": "Arriety", "director": "Hiromasa Yonebayashi", "release_year": 2010, "genre": "Fantasy"},
-    {"id": 5, "title": "Your Name", "director": "Makoto Shinkai", "release_year": 2016, "genre": "Romance"},
-]
 
-@app.route('/student')
+# Create Student
+@app.route('/create', methods=['POST'])
+def createStudent():
+    try:        
+        _json = request.json
+        id = _json['id']
+        first_name = _json['first_name']
+        last_name = _json['last_name']
+        grade = _json['grade']
+        class_number = _json['class_number']
+        birthday = _json['birthday']
+        if id and first_name and last_name and grade and class_number and birthday and request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)		
+            sqlQuery = "INSERT INTO student (id, first_name, last_name, grade, class_number, birthday) VALUES(%s, %s, %s, %s, %s, %s)"
+            bindData = (id, first_name, last_name, grade, class_number, birthday)            
+            cursor.execute(sqlQuery, bindData)
+            conn.commit()
+            respone = jsonify('Student added successfully!')
+            respone.status_code = 200
+            return respone
+        else:
+            return showMessage()
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close() 
+        conn.close() 
+
+# All Students View
+@app.route('/student', methods=['GET'])
 def students():
     try:
         conn = mysql.connect()
@@ -29,50 +54,84 @@ def students():
         conn.close() 
 
 
-@app.route('/movies', methods=['GET'])
-def get_movies():
-    return jsonify(movies)
+# Select Student View
+@app.route('/student/<int:id>')
+def students_details(id):
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SELECT * FROM  student WHERE id = %s", id)
+        studentRows = cursor.fetchone()
+        respone = jsonify(studentRows)
+        respone.status_code = 200
+        return respone
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close() 
+        conn.close() 
 
-@app.route('/movies/<int:id>', methods=['GET'])
-def get_movie(id):
-    movie = next((movie for movie in movies if movie["id"] == id), None)
-    if movie:
-        return jsonify(movie)
-    else:
-        return jsonify({"message": "Movie not found"}), 404
+"""
     
-@app.route('/movies', methods=['POST'])
-def create_movie():
-    new_movie = {
-        "id": request.json["id"],
-        "title": request.json["title"],
-        "director": request.json["director"],
-        "release_year": request.json["release_year"],
-        "genre": request.json["genre"]
+# Update Student Data (Still Editing AYAW MAG WORK BWISIT)
+@app.route('/update', methods=['PUT'])
+def update_student():
+    try:
+        _json = request.json
+        id = _json['id']
+        first_name = _json['first_name']
+        last_name = _json['last_name']
+        grade = _json['grade']
+        class_number = _json['class_number']
+        birthday = _json['birthday']
+        if id and first_name and last_name and grade and class_number and birthday and request.method == 'PUT':			
+            sqlQuery = "UPDATE student SET id=%s, first_name=%s, last_name=%s, grade=%s, class_number=%s, birthday=%s WHERE id=%s"
+            bindData = (id, first_name, last_name, grade, class_number, birthday,)
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.execute(sqlQuery, bindData)
+            conn.commit()
+            respone = jsonify('Student updated successfully!')
+            respone.status_code = 200
+            return respone
+        else:
+            return showMessage()
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close() 
+        conn.close() 
+"""
+
+
+@app.route('/delete/<int:id>', methods=['DELETE'])
+def delete_student(id):
+	try:
+		conn = mysql.connect()
+		cursor = conn.cursor()
+		cursor.execute("DELETE FROM student WHERE id =%s", (id,))
+		conn.commit()
+		respone = jsonify('Student deleted successfully!')
+		respone.status_code = 200
+		return respone
+	except Exception as e:
+		print(e)
+	finally:
+		cursor.close() 
+		conn.close()
+
+
+# Error Handler
+@app.errorhandler(404)
+def showMessage(error=None):
+    message = {
+        'status': 404,
+        'message': 'Record does not exist: ' + request.url,
     }
-    movies.append(new_movie)
-    return jsonify({"message": "Movie created successfully"})
+    respone = jsonify(message)
+    respone.status_code = 404
+    return respone
 
-@app.route('/movies/<int:id>', methods=['PUT'])
-def update_movie(id):
-    movie = next((movie for movie in movies if movie["id"] == id), None)
-    if movie:
-        movie["title"] = request.json.get("title", movie["title"])
-        movie["director"] = request.json.get("director", movie["director"])
-        movie["release_year"] = request.json.get("release_year", movie["release_year"])
-        movie["genre"] = request.json.get("genre", movie["genre"])
-        return jsonify({"message": "Movie updated successfully"})
-    else:
-        return jsonify({"message": "Movie not found"}), 404
-
-@app.route('/movies/<int:id>', methods=['DELETE'])
-def delete_movie(id):
-    movie = next((movie for movie in movies if movie["id"] == id), None)
-    if movie:
-        movies.remove(movie)
-        return jsonify({"message": "Movie deleted successfully"})
-    else:
-        return jsonify({"message": "Movie not found"}), 404
 
 if __name__ == '__main__':
     app.run()
