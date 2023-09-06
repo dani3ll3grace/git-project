@@ -71,9 +71,8 @@ def students_details(id):
         cursor.close() 
         conn.close() 
 
-"""
-    
-# Update Student Data (Still Editing AYAW MAG WORK BWISIT)
+
+# Update Student Data (Still Editing)
 @app.route('/update', methods=['PUT'])
 def update_student():
     try:
@@ -101,7 +100,7 @@ def update_student():
     finally:
         cursor.close() 
         conn.close() 
-"""
+
 
 
 @app.route('/delete/<int:id>', methods=['DELETE'])
